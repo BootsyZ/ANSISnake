@@ -1,3 +1,4 @@
+import copy
 import shutil
 import sys
 import select
@@ -173,7 +174,7 @@ class Snake(threading.Thread):
         self.width = T.width
         self.height = T.height
         self.center = self.init_center()
-        self.__direction, self.pending_direction = 'e', 'e'
+        self.__direction, self.pending_direction = 'e', ['e']
         self.current_snake: list = self.init_snake()
         self.bites: set = {self.new_bite(paint=False)}
         threading.Thread.__init__(self, daemon=True)
@@ -207,7 +208,10 @@ class Snake(threading.Thread):
 
     def game_loop(self):
         while True:
-            self.__direction = self.pending_direction
+            try:
+                self.__direction = self.pending_direction.pop(0)
+            except IndexError:
+                pass
             self.move()
             T.paint_pixel([1, 1], 'Score: ', str(self.score()))
             Flush()
@@ -246,17 +250,23 @@ class Snake(threading.Thread):
 
     @direction.setter
     def direction(self, direction):
-        try:
-            current_direction = self.direction
-            if direction == 'n' and current_direction != 's' \
-                    or direction == 'e' and current_direction != 'w' \
-                    or direction == 's' and current_direction != 'n' \
-                    or direction == 'w' and current_direction != 'e':
-                self.pending_direction = direction
-            else:
-                raise ValueError
-        except ValueError:
-            pass
+        if len(self.pending_direction) <= 1:
+            current_direction = self.direction if len(self.pending_direction) == 0 else self.pending_direction[0]
+            try:
+                if direction == 'n' and current_direction != 's' \
+                        or direction == 'e' and current_direction != 'w' \
+                        or direction == 's' and current_direction != 'n' \
+                        or direction == 'w' and current_direction != 'e':
+                    if len(self.pending_direction) == 0:
+                        self.pending_direction = list(direction)
+                    elif len(self.pending_direction) == 1:
+                        new_pending_direction = copy.copy(self.pending_direction)
+                        new_pending_direction.append(direction)
+                        self.pending_direction = new_pending_direction
+                else:
+                    raise ValueError
+            except ValueError:
+                pass
 
     def new_bite(self, **kwargs):
         while True:
@@ -293,6 +303,7 @@ class Snake(threading.Thread):
 
 
 def exit_handler():
+    Cursor.show(True)
     termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, original_stdin)
     T.reset()
 
