@@ -308,9 +308,15 @@ def exit_handler():
     T.reset()
 
 
-original_stdin = termios.tcgetattr(sys.stdin.fileno())
-atexit.register(exit_handler)
-tty.setraw(sys.stdin)
+try:
+    original_stdin = termios.tcgetattr(sys.stdin.fileno())
+    atexit.register(exit_handler)
+    tty.setraw(sys.stdin)
+except termios.error as e:
+    print("termios.error:", e)
+    print("Probably this terminal emulator is not supported...")
+    sys.exit(1)
+
 T.reset()
 Cursor.show(False)
 T.linewrap(False)
@@ -324,7 +330,7 @@ def input_loop():
         read, *_ = select.select([sys.stdin], [], [], 0)
         if sys.stdin in read:
             char = ord(sys.stdin.read(1))
-            if char == 3:  # CTRL-C
+            if char == 3 or char == 113:  # CTRL-C
                 sys.exit(0)
             else:
                 if char == 27:
