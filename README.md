@@ -1,4 +1,4 @@
 # ANSISnake
 Play snake in the terminal
 
-Should work on Unix. Does not work on Windows.
+Should work on *nix. Does not work on Windows.
