@@ -54,13 +54,13 @@ class Cursor:
         Write("\33[{u}")
 
 
-class T:
+class Terminal:
     width: int = 80
     height: int = 24
 
     @staticmethod
     def refresh():
-        T.width, T.height = shutil.get_terminal_size()
+        Terminal.width, Terminal.height = shutil.get_terminal_size()
 
     @staticmethod
     def reset():
@@ -76,11 +76,11 @@ class T:
 
     @staticmethod
     def clear(col="\33[0m"):
-        T.refresh()
+        Terminal.refresh()
         Cursor.set(0, 0)
         Write(f"{col})")
-        Write(f"\r{' ' * T.width}\n" * (T.height - 1))
-        Write(f"\r{' ' * T.width}")
+        Write(f"\r{' ' * Terminal.width}\n" * (Terminal.height - 1))
+        Write(f"\r{' ' * Terminal.width}")
         Flush()
 
     @staticmethod
@@ -93,7 +93,7 @@ class T:
     @staticmethod
     def paint_pixel(coordinate, colour, character=' '):
         Cursor.set(coordinate[0], coordinate[1])
-        Write(f"{colour}{character}{A.CEND}")
+        Write(f"{colour}{character}{ANSI.CEND}")
 
     # @staticmethod
     # def fill(col="\33[0m"):
@@ -105,7 +105,7 @@ class T:
     #     Flush()
 
 
-class A:
+class ANSI:
     CEND = '\33[0m'
     CBOLD = '\33[1m'
     CITALIC = '\33[3m'
@@ -169,10 +169,10 @@ class A:
 
 class Snake(threading.Thread):
     def __init__(self):
-        T.refresh()
+        Terminal.refresh()
         self.start_length = 6
-        self.width = T.width
-        self.height = T.height
+        self.width = Terminal.width
+        self.height = Terminal.height
         self.center = self.init_center()
         self.__direction, self.pending_direction = 'e', ['e']
         self.current_snake: list = self.init_snake()
@@ -194,17 +194,15 @@ class Snake(threading.Thread):
                 if 0 < pos[0] <= (self.width - 0.5) and 0 < pos[1] + row <= self.height:
 
                     if row == 1 or row == step * 2 - 1 or pos[1] + row == 1 or pos[1] + row == self.height:
-                        T.paint_pixel([pos[0], pos[1] + row], "x" * step * 4, '')
+                        Terminal.paint_pixel([pos[0], pos[1] + row], "x" * step * 4, '')
                     else:
-                        T.paint_pixel([pos[0], pos[1] + row], f"x{' ' * (step * 4 - 2)}x", '')
+                        Terminal.paint_pixel([pos[0], pos[1] + row], f"x{' ' * (step * 4 - 2)}x", '')
             Flush()
             time.sleep(0.05)
-        # T.clear()
-        T.paint_pixel((1, self.height), 'Bite: ', str(self.bites))
+        Terminal.paint_pixel((1, self.height), 'Bite: ', str(self.bites))
         for bite in self.bites:
-            T.paint_pixel(bite, A.CREDBG2, '  ')
+            Terminal.paint_pixel(bite, ANSI.CREDBG2, '  ')
         Flush()
-        # time.sleep(1)
 
     def game_loop(self):
         while True:
@@ -213,7 +211,7 @@ class Snake(threading.Thread):
             except IndexError:
                 pass
             self.move()
-            T.paint_pixel([1, 1], 'Score: ', str(self.score()))
+            Terminal.paint_pixel([1, 1], 'Score: ', str(self.score()))
             Flush()
             time.sleep(0.08)
 
@@ -235,14 +233,14 @@ class Snake(threading.Thread):
         if 0 < next_coord[0] <= (self.width - 0.5) and 0 < next_coord[1] <= self.height \
                 and next_coord not in self.current_snake:
             self.current_snake.append(next_coord)
-            T.paint_pixel(self.current_snake[len(self.current_snake) - 1], A.CGREENBG2, '  ')
-            T.paint_pixel((self.height, self.width / 2), "Position: ", str(next_coord))
+            Terminal.paint_pixel(self.current_snake[len(self.current_snake) - 1], ANSI.CGREENBG2, '  ')
+            Terminal.paint_pixel((self.height, self.width / 2), "Position: ", str(next_coord))
             if next_coord in self.bites:
                 self.bites.discard(next_coord)
                 self.bites.add(self.new_bite())
             else:
                 del self.current_snake[0]
-                T.paint_pixel(self.current_snake[0], A.CEND, '  ')
+                Terminal.paint_pixel(self.current_snake[0], ANSI.CEND, '  ')
 
     @property
     def direction(self):
@@ -279,8 +277,8 @@ class Snake(threading.Thread):
                     break
                 finally:
                     if kwargs.get("paint", True):
-                        T.paint_pixel((1, self.height), 'Bite: ', str(bite))
-                        T.paint_pixel(bite, A.CREDBG2, '  ')
+                        Terminal.paint_pixel((1, self.height), 'Bite: ', str(bite))
+                        Terminal.paint_pixel(bite, ANSI.CREDBG2, '  ')
                     return bite
 
     def score(self):
@@ -305,7 +303,7 @@ class Snake(threading.Thread):
 def exit_handler():
     Cursor.show(True)
     termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, original_stdin)
-    T.reset()
+    Terminal.reset()
 
 
 try:
@@ -317,9 +315,9 @@ except termios.error as e:
     print("Probably this terminal emulator is not supported...")
     sys.exit(1)
 
-T.reset()
+Terminal.reset()
 Cursor.show(False)
-T.linewrap(False)
+Terminal.linewrap(False)
 
 
 # ======================================================================================================================
@@ -330,7 +328,7 @@ def input_loop():
         read, *_ = select.select([sys.stdin], [], [], 0)
         if sys.stdin in read:
             char = ord(sys.stdin.read(1))
-            if char == 3 or char == 113:  # CTRL-C
+            if char == 3 or char == 81 or char == 113:  # CTRL-C or Q or q
                 sys.exit(0)
             else:
                 if char == 27:
@@ -344,8 +342,8 @@ def input_loop():
                             game.direction = 's'
                         elif next2 == 65:  # Up
                             game.direction = 'n'
-        T.refresh()
-        if T.width != game.width or T.height != game.height:
+        Terminal.refresh()
+        if Terminal.width != game.width or Terminal.height != game.height:
             sys.exit(0)
         time.sleep(0.0001)
 
