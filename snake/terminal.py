@@ -16,9 +16,9 @@ def flush():
 class Terminal:
     __instance = None
 
-    def __init__(self):
+    def __init__(self, parent):
         if Terminal.__instance is None:
-            Terminal.__instance = Terminal.__Terminal()
+            Terminal.__instance = Terminal.__Terminal(parent)
 
         self.__dict__['_Terminal__instance'] = Terminal.__instance
 
@@ -34,7 +34,8 @@ class Terminal:
         cursor_visible: bool = False
         linewrap: bool = False
 
-        def __init__(self):
+        def __init__(self, parent):
+            self.parent = parent
             try:
                 self._original_stdin = termios.tcgetattr(sys.stdin.fileno())
                 atexit.register(self._exit_handler)
@@ -45,13 +46,15 @@ class Terminal:
                 self.set_linewrap(False)
             except termios.error as e:
                 print("termios.error:", e)
-                print("Probably this terminal emulator is not supported...")
+                print("This terminal emulator is probably not supported...")
                 sys.exit(1)
 
         def _exit_handler(self):
             self.set_cursor_visible(True)
+            self.set_linewrap(True)
             termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, self._original_stdin)
-            self.reset()
+            if not self.parent.debug:
+                self.reset()
 
         def refresh(self):
             self.width, self.height = shutil.get_terminal_size()
@@ -75,6 +78,7 @@ class Terminal:
         def reset(self):
             write("\33c")
             self.set_cursor_visible(self.cursor_visible)
+            self.set_linewrap(self.linewrap)
             flush()
 
         # def initialize(self, col="\33[0m"):
