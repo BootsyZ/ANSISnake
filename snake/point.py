@@ -3,8 +3,8 @@ import random
 
 
 def getSurroundingPoints(point):
-    pointList = [(point[0], point[1] - 1), (point[0] - 2, point[1]), (point[0], point[1] + 1),
-                 (point[0] + 2, point[1])]
+    pointList = [(point[0], point[1] - 1), (point[0] - 1, point[1]), (point[0], point[1] + 1),
+                 (point[0] + 1, point[1])]
     return pointList
 
 
@@ -19,11 +19,11 @@ def getNextPoint(position, direction):
     if direction == 'n':
         next_point = (position[0], position[1] - 1)
     elif direction == 'e':
-        next_point = (position[0] + 2, position[1])
+        next_point = (position[0] + 1, position[1])
     elif direction == 's':
         next_point = (position[0], position[1] + 1)
     elif direction == 'w':
-        next_point = (position[0] - 2, position[1])
+        next_point = (position[0] - 1, position[1])
     else:
         raise ValueError
     return next_point
@@ -34,7 +34,7 @@ def calculateDistance(start, end):
 
 
 def getManhattenDistance(start, end):
-    return abs(int(start[0] / 2 - end[0] / 2)) + abs(int(start[1] - end[1]))
+    return abs(int(start[0] - end[0])) + abs(int(start[1] - end[1]))
 
 
 def calculateDirection(start, end):

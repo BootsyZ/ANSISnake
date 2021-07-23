@@ -4,6 +4,7 @@ import time
 
 import snake.terminal as terminal
 from snake.snakeThread import SnakeThread
+from snake.canvas import Canvas
 
 
 def write(x): return terminal.write(x)
@@ -15,7 +16,7 @@ def flush(): return terminal.flush()
 class Snake:
     def __init__(self, *args, **kwargs):
         self.debug = True if "debug" in args else False
-        self.terminal = terminal.Terminal(self)
+        self.canvas = Canvas(self)
         self._snakeThread = SnakeThread(self)
 
     def start(self):
@@ -66,7 +67,7 @@ class Snake:
                     elif char == 54:  # K
                         self._snakeThread.setDirection('e', 3)
 
-            self.terminal.refresh()
-            if self.terminal.width != self._snakeThread.width or self.terminal.height != self._snakeThread.height:
+            self.canvas.refresh()
+            if self.canvas.width != self._snakeThread.width or self.canvas.height != self._snakeThread.height:
                 sys.exit(0)
             time.sleep(0.0001)

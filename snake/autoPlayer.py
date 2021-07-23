@@ -2,12 +2,12 @@ from snake.escSeq import EscSeq
 from snake.player import Player
 from snake.point import getNextPoint, calculateDirection, getManhattenDistance, getSurroundingPoints
 import time
-import snake.terminal as terminal
+from snake.canvas import flush
 
 
 class AutoPlayer(Player):
     def __init__(self, parent, index):
-        self.closedList: set = {}
+        self.closedList: set = set()
         super().__init__(parent, index)
 
     def getDirection(self):
@@ -81,12 +81,12 @@ class AutoPlayer(Player):
         closest_bite = bitelist[0]
 
         for pixel in self.closedList:
-            terminal.paint_pixel(pixel, EscSeq.CEND, '  ')
+            self.parent.canvas.paint_pixel(pixel, EscSeq.CEND, '  ')
         self.closedList = self.getShortestPath(position, closest_bite[1])
         for bite in self.parent.bites:
-            terminal.paint_pixel(bite, EscSeq.CREDBG2, '  ')
-        terminal.paint_pixel(position, self.colourHead, '^^')
-        terminal.flush()
+            self.parent.canvas.paint_pixel(bite, EscSeq.CREDBG2, '  ')
+        self.parent.canvas.paint_pixel(position, self.colourHead, '^^')
+        flush()
         # time.sleep(10)
         return calculateDirection(position, closest_bite[1])
 
@@ -111,18 +111,18 @@ class AutoPlayer(Player):
             currentPointObject = None
 
             # self.parent.debug("Obj:", str(currentPoint) + " - " + str(steps))
-            # terminal.flush()
+            # flush()
             # time.sleep(100)
             closedList.add(currentPoint)
             openList.pop(currentPoint)
             # if steps < 100:
-            #     terminal.paint_pixel(currentPoint, EscSeq.CGREYBG, str(steps))
+            #     self.parent.canvas.paint_pixel(currentPoint, EscSeq.CGREYBG, str(steps))
             # distance = getManhattenDistance(currentPoint, destination)
             # if distance < 100:
-            #     # terminal.paint_pixel(currentPoint, EscSeq.CGREYBG, str(int(distance)).format())
-            #     terminal.paint_pixel(currentPoint, EscSeq.CGREYBG, f"{distance:}"[0:2])
+            #     # self.parent.canvas.paint_pixel(currentPoint, EscSeq.CGREYBG, str(int(distance)).format())
+            #     self.parent.canvas.paint_pixel(currentPoint, EscSeq.CGREYBG, f"{distance:}"[0:2])
             # else:
-            terminal.paint_pixel(currentPoint, EscSeq.CGREYBG, 'XX')
+            self.parent.canvas.paint_pixel(currentPoint, EscSeq.CGREYBG, 'XX')
 
             if destination in closedList:
                 break
