@@ -22,8 +22,7 @@ class SnakeThread(threading.Thread):
         self.width = self.terminal.width
         self.height = self.terminal.height
         self.center = self.init_center()
-        self.__direction: str
-        self.pending_direction: list
+        self.__direction, self.pending_direction = 'e', ['e']
         self.current_snake: list = self.init_snake()
         self.bites: set = {self.new_bite(paint=False)}
         threading.Thread.__init__(self, daemon=True)
