@@ -56,6 +56,13 @@ class Terminal:
             if not self.parent.debug:
                 self.reset()
 
+        def getCenter(self):
+            start = [int(self.width / 2), int(self.height / 2)]
+            for i in range(len(start)):
+                if start[i] % 2 == 0:
+                    start[i] += 1
+            return tuple(start)
+
         def refresh(self):
             self.width, self.height = shutil.get_terminal_size()
 

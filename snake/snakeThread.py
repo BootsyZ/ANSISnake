@@ -1,10 +1,12 @@
-import copy
 import random
 import threading
 import time
 from enum import Enum, auto
 import snake.terminal as terminal
-from snake import escSeq
+from snake.escSeq import EscSeq
+from snake.player import Player
+from snake.autoPlayer import AutoPlayer
+from snake.point import getNextPoint
 
 
 def write(x): return terminal.write(x)
@@ -21,9 +23,11 @@ class SnakeThread(threading.Thread):
         self.start_length = 6
         self.width = self.terminal.width
         self.height = self.terminal.height
-        self.center = self.init_center()
-        self.__direction, self.pending_direction = 'e', ['e']
-        self.current_snake: list = self.init_snake()
+        self.center = self.terminal.getCenter()
+        self.playerCount: int = 1
+        self.biteCount = 1
+        self.timeSleep = 0.08  # Original
+        self.players: list = []
         self.bites: set = {self.new_bite(paint=False)}
         threading.Thread.__init__(self, daemon=True)
 
@@ -33,6 +37,7 @@ class SnakeThread(threading.Thread):
     def game_menu(self):
         class Options(Enum):
             START = auto
+            PLAYERS = auto
             EXIT = auto
 
         selection = Options.START
@@ -43,7 +48,10 @@ class SnakeThread(threading.Thread):
             self.game_loop()
 
     def game_start(self):
-        self.__direction, self.pending_direction = 'e', ['e']
+        for index in range(0, self.playerCount):
+            # self.players.append(AutoPlayer(self, index))
+            self.players.append(Player(self, index))
+
         steps = 0 if self.width / 2 >= self.height else 1
         for step in range(int(((self.width / 2 if steps == 0 else self.height) + 2) / 2)):
             pos = [self.center[0] - step * 2, self.center[1] - step]
@@ -55,79 +63,63 @@ class SnakeThread(threading.Thread):
                         terminal.paint_pixel([pos[0], pos[1] + row], "x" * step * 4, '')
                     else:
                         terminal.paint_pixel([pos[0], pos[1] + row], f"x{' ' * (step * 4 - 2)}x", '')
+
             flush()
-            time.sleep(0.05)
+            time.sleep(0.01)
         terminal.paint_pixel((1, self.height), 'Bite: ', str(self.bites))
         for bite in self.bites:
-            terminal.paint_pixel(bite, escSeq.CREDBG2, '  ')
+            terminal.paint_pixel(bite, EscSeq.CREDBG2, '  ')
         flush()
 
     def game_loop(self):
         while True:
-            try:
-                self.__direction = self.pending_direction.pop(0)
-            except IndexError:
-                pass
+            while len(self.bites) < self.biteCount:
+                self.bites.add(self.new_bite())
             self.move()
-            terminal.paint_pixel([1, 1], 'Score: ', str(self.score()))
+            for player in self.players:
+                for index in range(1, len(player.current_snake) - 1):
+                    terminal.paint_pixel(player.current_snake[index], player.colour, '  ')
+                terminal.paint_pixel(player.current_snake[len(player.current_snake) - 1], player.colourHead, '^^')
+                terminal.paint_pixel([self.width / len(self.players) * player.index, 1],
+                                     "[ Player " + str(player.index + 1) + ": ",
+                                     str(self.score(player)) + " ]")
+            for bite in self.bites:
+                terminal.paint_pixel(bite, EscSeq.CREDBG2, '  ')
             flush()
-            time.sleep(0.08)
+            time.sleep(self.timeSleep)
 
     def move(self):
-        direction = self.direction
-        latest = self.current_snake[len(self.current_snake) - 1]
-        next_coord: tuple
-        if direction == 'n':
-            next_coord = (latest[0], latest[1] - 1)
-        elif direction == 'e':
-            next_coord = (latest[0] + 2, latest[1])
-        elif direction == 's':
-            next_coord = (latest[0], latest[1] + 1)
-        elif direction == 'w':
-            next_coord = (latest[0] - 2, latest[1])
-        else:
-            raise ValueError
+        for player in self.players:
+            direction = player.getDirection()
+            position = player.current_snake[len(player.current_snake) - 1]
+            next_point = getNextPoint(position, direction)
 
-        if 0 < next_coord[0] <= (self.width - 0.5) and 0 < next_coord[1] <= self.height \
-                and next_coord not in self.current_snake:
-            self.current_snake.append(next_coord)
-            terminal.paint_pixel(self.current_snake[len(self.current_snake) - 1], escSeq.CGREENBG2, '  ')
-            terminal.paint_pixel((self.height, self.width / 2), "Position: ", str(next_coord))
-            if next_coord in self.bites:
-                self.bites.discard(next_coord)
-                self.bites.add(self.new_bite())
-            else:
-                del self.current_snake[0]
-                terminal.paint_pixel(self.current_snake[0], escSeq.CEND, '  ')
+            # for index in range(1, len(player.current_snake) - 1):
+            #     terminal.paint_pixel(player.current_snake[index], player.colour, '  ')
+            # terminal.paint_pixel(player.current_snake[len(player.current_snake) - 1], player.colourHead, '^^')
 
-    @property
-    def direction(self):
-        return self.__direction
-
-    @direction.setter
-    def direction(self, direction):
-        if len(self.pending_direction) <= 1:
-            current_direction = self.direction if len(self.pending_direction) == 0 else self.pending_direction[0]
-            try:
-                if direction == 'n' and current_direction != 's' \
-                        or direction == 'e' and current_direction != 'w' \
-                        or direction == 's' and current_direction != 'n' \
-                        or direction == 'w' and current_direction != 'e':
-                    if len(self.pending_direction) == 0:
-                        self.pending_direction = list(direction)
-                    elif len(self.pending_direction) == 1:
-                        new_pending_direction = copy.copy(self.pending_direction)
-                        new_pending_direction.append(direction)
-                        self.pending_direction = new_pending_direction
+            if self.isPointValid(next_point) and not self.isPointInUse(next_point):
+                player.current_snake.append(next_point)
+                # terminal.paint_pixel(player.current_snake[len(player.current_snake) - 2], player.colour, '  ')
+                # terminal.paint_pixel(player.current_snake[len(player.current_snake) - 1], player.colourHead, '^^')
+                if next_point in self.bites:
+                    self.bites.discard(next_point)
+                    self.bites.add(self.new_bite())
                 else:
-                    raise ValueError
-            except ValueError:
-                pass
+                    del player.current_snake[0]
+                    terminal.paint_pixel(player.current_snake[0], EscSeq.CEND, '  ')
+            # else: # restart when dead
+            #     for point in player.current_snake:
+            #         terminal.paint_pixel(point, EscSeq.CEND, '  ')
+            #     self.players[player.index] = AutoPlayer(self, player.index)
+
+    def setDirection(self, direction, index):
+        self.players[index].setDirection(direction)
 
     def new_bite(self, **kwargs):
         while True:
-            bite = (random.randrange(1, self.width, 2), random.randrange(2, self.height))
-            if bite not in self.current_snake:
+            bite = (random.randrange(3, self.width - 2, 2), random.randrange(2, self.height - 1))
+            if not self.isPointInUse(bite):
                 try:
                     if bite not in self.bites:
                         break
@@ -136,19 +128,43 @@ class SnakeThread(threading.Thread):
                 finally:
                     if kwargs.get("paint", True):
                         terminal.paint_pixel((1, self.height), 'Bite: ', str(bite))
-                        terminal.paint_pixel(bite, escSeq.CREDBG2, '  ')
+                        terminal.paint_pixel(bite, EscSeq.CREDBG2, '  ')
                     return bite
 
-    def score(self):
-        return int(((len(self.current_snake) - self.start_length) / (
-                (self.width / 2) * self.height - self.start_length)) * 10000)
+    def isPointInUse(self, point):
+        for player in self.players:
+            if point in player.current_snake:
+                return player
+        return None
 
-    def init_center(self):
-        start = [int(self.width / 2), int(self.height / 2)]
-        for i in range(len(start)):
-            if start[i] % 2 == 0:
-                start[i] += 1
-        return tuple(start)
+    def isPointFree(self, point):
+        if not self.isPointValid(point):
+            return False
+        for player in self.players:
+            if point in player.current_snake:
+                return False
+        return True
+
+    def isFuturePointFree(self, point, steps, askingPlayer):
+        if not self.isPointValid(point):
+            return False
+        for player in self.players:
+            if point in player.current_snake[steps - 1:len(player.current_snake) - 1]:
+                return False
+            # if player == askingPlayer:
+            #     if point in player.current_snake[steps-1:len(player.current_snake) - 1]:
+            #         return False
+            # elif point in player.current_snake:
+            #     return False
+        return True
+
+    def isPointValid(self, point):
+        return 1 < point[0] <= (self.width - 1.5) and 1 < point[1] <= (self.height - 1)
+
+    def score(self, player):
+        return str(len(player.current_snake) - self.start_length)
+        # return int(((len(player.current_snake) - self.start_length) / (
+        #         (self.width / 2) * self.height - self.start_length)) * 10000)
 
     def init_snake(self):
         current_snake = [self.center]
@@ -156,3 +172,18 @@ class SnakeThread(threading.Thread):
             latest = current_snake[len(current_snake) - 1]
             current_snake.append(latest)
         return current_snake
+
+    def debug(self, string, value):
+        terminal.paint_pixel((self.width / 2, self.height), "[ " + string + ": ", str(value) + " ]")
+
+    def debug1(self, value):
+        terminal.paint_pixel((0, self.height - 1), "1: ", str(value))
+
+    def debug2(self, value):
+        terminal.paint_pixel((self.width / 4, self.height - 1), "2: ", str(value))
+
+    def debug3(self, value):
+        terminal.paint_pixel(((self.width / 4) * 2, self.height - 1), "3: ", str(value))
+
+    def debug4(self, value):
+        terminal.paint_pixel(((self.width / 4) * 3, self.height - 1), "4: ", str(value))
