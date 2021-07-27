@@ -49,6 +49,9 @@ class EscSeq:
     CBASE = '\33[1;37;100m'
     CBORDER = '\33[1;37;40m'
 
+    CBLACKONWHITE = '\33[1;30;47m'
+    CWHITEONBLACK = '\33[1;37;40m'
+
     LWRAPOFF = "\33[?7l"
     LWRAPON = "\33[?7h"
 

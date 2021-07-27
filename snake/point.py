@@ -29,8 +29,8 @@ def getNextPoint(position, direction):
     return next_point
 
 
-def calculateDistance(start, end):
-    return math.sqrt(((start[0] - end[0]) ** 2) + ((start[1] - end[1]) ** 2))
+# def calculateDistance(start, end):
+#     return math.sqrt(((start[0] - end[0]) ** 2) + ((start[1] - end[1]) ** 2))
 
 
 def getManhattenDistance(start, end):

@@ -19,15 +19,15 @@ class AutoPlayer(Player):
         new_direction = self.getAutoDirection()
         position = self.current_snake[len(self.current_snake) - 1]
 
-        debugstring = self._direction + "-" + str(new_direction)
-        if self.index == 0:
-            self.parent.debug1(debugstring)
-        elif self.index == 1:
-            self.parent.debug2(debugstring)
-        elif self.index == 2:
-            self.parent.debug3(debugstring)
-        elif self.index == 3:
-            self.parent.debug4(debugstring)
+        # debugstring = self._direction + "-" + str(new_direction)
+        # if self.index == 0:
+        #     self.parent.debug1(debugstring)
+        # elif self.index == 1:
+        #     self.parent.debug2(debugstring)
+        # elif self.index == 2:
+        #     self.parent.debug3(debugstring)
+        # elif self.index == 3:
+        #     self.parent.debug4(debugstring)
 
         if self._direction in new_direction[0]:
             if self.isDirectionValid(self._direction):
@@ -81,11 +81,11 @@ class AutoPlayer(Player):
         closest_bite = bitelist[0]
 
         for pixel in self.closedList:
-            self.parent.canvas.paint_pixel(pixel, EscSeq.CEND, '  ')
+            self.parent.canvas.paintPixels(pixel, EscSeq.CEND, '  ')
         self.closedList = self.getShortestPath(position, closest_bite[1])
         for bite in self.parent.bites:
-            self.parent.canvas.paint_pixel(bite, EscSeq.CREDBG2, '  ')
-        self.parent.canvas.paint_pixel(position, self.colourHead, '^^')
+            self.parent.canvas.paintPixels(bite, EscSeq.CREDBG2, '  ')
+        self.parent.canvas.paintPixels(position, self.colourHead, '^^')
         flush()
         # time.sleep(10)
         return calculateDirection(position, closest_bite[1])
@@ -122,7 +122,7 @@ class AutoPlayer(Player):
             #     # self.parent.canvas.paint_pixel(currentPoint, EscSeq.CGREYBG, str(int(distance)).format())
             #     self.parent.canvas.paint_pixel(currentPoint, EscSeq.CGREYBG, f"{distance:}"[0:2])
             # else:
-            self.parent.canvas.paint_pixel(currentPoint, EscSeq.CGREYBG, 'XX')
+            self.parent.canvas.paintPixels(currentPoint, EscSeq.CGREYBG, 'XX')
 
             if destination in closedList:
                 break
@@ -158,7 +158,7 @@ class AutoPlayer(Player):
                     if score < openList[point][1]:
                         openList[point] = [point, score, steps]
 
-        self.parent.debug("ResultLength: ", len(closedList))
+        # self.parent.debug("ResultLength: ", len(closedList))
         return closedList
 
     def checkPointSurroundings(self, point, steps, closedList):

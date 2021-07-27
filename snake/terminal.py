@@ -57,10 +57,10 @@ class Terminal:
                 self.reset()
 
         def getCenter(self):
-            start = [int(self.width / 2), int(self.height / 2)]
-            for i in range(len(start)):
-                if start[i] % 2 == 0:
-                    start[i] += 1
+            start = [int(self.width / 2 + 0.5), int(self.height / 2 + 0.5)]
+            # for i in range(len(start)):
+            #     if start[i] % 2 == 0:
+            #         start[i] += 1
             return tuple(start)
 
         def refresh(self):
@@ -102,8 +102,9 @@ class Terminal:
         #     flush()
 
 
-def paint_pixel(coordinate, colour, character=' '):
-    cursor_set(coordinate[0], coordinate[1])
+def painPixels(point, colour, character=' '):
+    cursor_set(point[0], point[1])
+    colour = colour or ""
     write(f"{colour}{character}\33[0m")
 
 

@@ -37,24 +37,86 @@ class Canvas:
             self._terminal.refresh()
 
         def getCenter(self):
-            start = [int(self.width / 2), int(self.height / 2)]
-            for i in range(len(start)):
-                if start[i] % 2 == 0:
-                    start[i] += 1
+            start = [int(self.width / 2), int(self.height / 2 + 0.5)]
+            # for i in range(len(start)):
+            #     if start[i] % 2 == 0:
+            #         start[i] += 1
             return tuple(start)
 
         def refresh(self):
             self._terminal.refresh()
             self._rawWidth = self._terminal.width
             self._rawHeight = self._terminal.height
-            self.width = self._terminal.width / 2
-            self.height = self._terminal.height
+            self.width = int(self._terminal.width / self._pixelWidth) - 1
+            self.height = int(self._terminal.height / self._pixelHeight) - 1
 
         def clear(self, col="\33[0m"):
             self._terminal.clear(col)
 
-        def paint_pixel(self, point, colour, character=' '):
-            terminal.paint_pixel(self.getRawPoint(point), colour, character)
+        def paintPixels(self, point, colour, character=' '):
+            terminal.painPixels(self.getRawPoint(point), colour, character)
+
+        def paintRect(self, **kwargs):
+            topLeft = kwargs.get("topLeft", (0, 0))
+            bottomRight = kwargs.get("bottomRight", (self.width, self.height))
+            if not 0 <= topLeft[0] < bottomRight[0] or not 0 <= topLeft[1] < bottomRight[1]:
+                raise ValueError
+
+            paintLine = True if kwargs.get("line") or kwargs.get("lineColour") else False
+            line = kwargs.get("line", " ")
+            lineColour = kwargs.get("lineColour")
+
+            paintFill = True if kwargs.get("fill") or kwargs.get("fillColour") else False
+            fill = kwargs.get("fill", " ")
+            fillColour = kwargs.get("fillColour")
+
+            width = (bottomRight[0] - topLeft[0]) * self._pixelWidth
+            height = (bottomRight[1] - topLeft[1]) * self._pixelHeight
+
+            startPoint = self.getRawPoint(topLeft)
+            if startPoint[0] == 0: # TODO: Move to getRawPoint?
+                startPoint = (startPoint[0] + 1, startPoint[1])
+            if startPoint[1] == 0:
+                startPoint = (startPoint[0], startPoint[1] + 1)
+            endPoint = (startPoint[0] + width, startPoint[1] + height)
+
+            fillString = (fill * (int(width / len(fill) + 0.5) + 1))[0:width - len(line) + 1] if paintFill else fill
+            # lineString = (line * (int(width / len(line) + 0.5) + 2))[0:width + 2] if paintLine else line
+
+            if paintLine:
+                for index in range(1, len(line) + 1):
+                    terminal.painPixels((startPoint[0], startPoint[1] + index - 1), lineColour,
+                                        line[0:index] +
+                                        line[index - 1:index] * ((width + 2) - (index * 2)) +
+                                        line[0:index][::-1])
+                    # line[-len(line)-5:-(len(line) + index):-1])
+
+            for row in range(startPoint[1] + len(line), endPoint[1] - len(line) + 1):
+                # terminal.painPixels((self._rawWidth - 16, 10 + row), lineColour, str(row))
+                if paintLine:
+                    terminal.painPixels((startPoint[0], row), lineColour, line)
+                if paintFill:
+                    terminal.painPixels((startPoint[0] + len(line), row), fillColour, fillString)
+                if paintLine:
+                    terminal.painPixels((endPoint[0] + self._pixelWidth - len(line), row), lineColour, line[::-1])
+
+            if paintLine:
+                for index in range(1, len(line) + 1):
+                    terminal.painPixels((startPoint[0], endPoint[1] - index + 1), lineColour,
+                                        line[0:index] +
+                                        line[index - 1:index] * ((width + 2) - (index * 2)) +
+                                        line[0:index][::-1])
+            # if paintLine:
+            #     for index in range(len(line) + 1):
+            #         terminal.painPixels((startPoint[0], endPoint[1] - index + 1), lineColour,
+            #                             line[index - 1:index] * (width + 2))
+            # if paintLine:
+            #     terminal.painPixels((startPoint[0], endPoint[1]), lineColour, lineString)
 
         def getRawPoint(self, point):
-            return [point[0] * self._pixelWidth, point[1] * self._pixelHeight]
+            rawPoint = [point[0] * self._pixelWidth, point[1] * self._pixelHeight]
+            if point[0] != 0:
+                rawPoint[0] += 1
+            if point[1] != 0:
+                rawPoint[1] += 1
+            return rawPoint
