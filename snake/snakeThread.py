@@ -73,7 +73,7 @@ class SnakeThread(threading.Thread):
                 break
             time.sleep(0.01)
 
-        # time.sleep(5)
+        time.sleep(5)
         # steps = self.width if self.width >= self.height else self.height
         # for step in range(int(steps / 2 + 0.5)):
         #     pos = [self.center[0] - step, self.center[1] - step]
@@ -90,8 +90,8 @@ class SnakeThread(threading.Thread):
         #     time.sleep(0.2)
 
     def game_start(self):
-        for index in range(0, self.playerCount):
-            self.players.append(AutoPlayer(self, index))
+        # for index in range(0, self.playerCount):
+        #     self.players.append(AutoPlayer(self, index))
 
         self.canvas.paintPixels(self.center, EscSeq.CBLUEBG, '--')
         self.canvas.paintPixels((0, 0), EscSeq.CBLUEBG, '--')
@@ -138,14 +138,14 @@ class SnakeThread(threading.Thread):
                 self.canvas.paintPixels((0, i), EscSeq.CBLACKBG, "  ")
                 self.canvas.paintPixels((0, i), EscSeq.CWHITEONBLACK, str(i))
         flush()
-        # time.sleep(100)
+        time.sleep(100)
 
-        self.canvas.paintPixels((0, self.height), '[ Bite: ', str(self.bites) + " ]")
-        for bite in self.bites:
-            self.canvas.paintPixels(bite, EscSeq.CREDBG2, '  ')
-        flush()
-        while len(self.bites) < self.biteCount:
-            self.bites.add(self.newBite(paint=False))
+        # self.canvas.paintPixels((0, self.height), '[ Bite: ', str(self.bites) + " ]")
+        # for bite in self.bites:
+        #     self.canvas.paintPixels(bite, EscSeq.CREDBG2, '  ')
+        # flush()
+        # while len(self.bites) < self.biteCount:
+        #     self.bites.add(self.newBite(paint=False))
 
     def game_loop(self):
         while True:
@@ -188,10 +188,10 @@ class SnakeThread(threading.Thread):
                 else:
                     del player.current_snake[0]
                     self.canvas.paintPixels(player.current_snake[0], EscSeq.CEND, '  ')
-            elif self.restart:  # restart when dead
-                for point in player.current_snake:
-                    self.canvas.paintPixels(point, EscSeq.CEND, '  ')
-                self.players[player.index] = AutoPlayer(self, player.index)
+            # else: # restart when dead
+            #     for point in player.current_snake:
+            #         self.canvas.paintPixels(point, EscSeq.CEND, '  ')
+            #     self.players[player.index] = AutoPlayer(self, player.index)
 
     def setDirection(self, direction, index):
         self.players[index].setDirection(direction)
@@ -199,7 +199,7 @@ class SnakeThread(threading.Thread):
     def newBite(self, **kwargs):
         while True:
             # bite = (random.randrange(1, self.width), random.randrange(1, self.height))
-            bite = (random.randrange(1, self.width), random.randrange(1, self.height))
+            bite = (random.randrange(1, self.width), random.randrange(1, self.height - 1))
             if not self.isPointInUse(bite):
                 try:
                     if bite not in self.bites:
@@ -240,7 +240,7 @@ class SnakeThread(threading.Thread):
         return True
 
     def isPointValid(self, point):
-        return 0 < point[0] < self.width and 0 < point[1] < self.height
+        return 1 < point[0] <= (self.width - 1) and 1 < point[1] <= (self.height - 1)
 
     def score(self, player):
         return str(len(player.current_snake) - self.start_length)
