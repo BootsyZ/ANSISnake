@@ -3,7 +3,6 @@ import threading
 import time
 from enum import Enum, auto
 
-from snake import terminal
 from snake.canvas import Canvas, write, flush
 from snake.escSeq import EscSeq
 from snake.player import Player
@@ -20,10 +19,10 @@ class SnakeThread(threading.Thread):
         self.width = self.canvas.width
         self.height = self.canvas.height
         self.center = self.canvas.getCenter()
-        self.playerCount: int = 4
-        self.biteCount = 100
+        self.playerCount: int = 3
+        self.biteCount = 64
         # self.biteCount = (self.width - 2) * (self.height - 2) + self.playerCount * self.start_length
-        self.timeSleep = 0.008
+        self.timeSleep = 0.08
         # self.timeSleep = 2.4
         self.restart = True
         self.players: list = []
@@ -48,7 +47,6 @@ class SnakeThread(threading.Thread):
             self.game_loop()
 
     def introAnimation(self):
-        center = self.center
         topLeft = [0, 0]
         bottomRight = [self.width, self.height]
 
@@ -73,22 +71,6 @@ class SnakeThread(threading.Thread):
                 break
             time.sleep(0.01)
 
-        # time.sleep(5)
-        # steps = self.width if self.width >= self.height else self.height
-        # for step in range(int(steps / 2 + 0.5)):
-        #     pos = [self.center[0] - step, self.center[1] - step]
-        #     for row in range(0, step * 2 + 1):
-        #
-        #         if 0 <= pos[0] <= self.width + 1 and 0 <= pos[1] + row <= self.height + 1:
-        #
-        #             if row == 0 or row == step * 2 or pos[1] + row == 0 or pos[1] + row == self.height:
-        #                 self.canvas.paintPixels([pos[0], pos[1] + row], "xx" * step * 2, '')
-        #             else:
-        #                 self.canvas.paintPixels([pos[0], pos[1] + row], f"x{' ' * (step * 4 - 2)}x", '')
-        #
-        #     flush()
-        #     time.sleep(0.2)
-
     def game_start(self):
         for index in range(0, self.playerCount):
             self.players.append(AutoPlayer(self, index))
@@ -101,7 +83,7 @@ class SnakeThread(threading.Thread):
 
         self.introAnimation()
         self.canvas.paintRect(topLeft=(self.width - 5, 0), bottomRight=(self.width, 5), line="x", fill="-")
-        self.canvas.paintRect(topLeft=(0, 0), bottomRight=(5, 5), fill="x", line="x")
+        self.canvas.paintRect(topLeft=(0, 0), bottomRight=(5, 5), fill="o", line="x")
         self.canvas.paintRect(topLeft=(8, 1), bottomRight=(16, 6), line="xy", fill="-0")
         self.canvas.paintRect(topLeft=(20, 4), bottomRight=(30, 12), line="xyz", fill="=")
         self.canvas.paintRect(topLeft=(38, 4), bottomRight=(48, 12), line="123")
@@ -138,7 +120,7 @@ class SnakeThread(threading.Thread):
                 self.canvas.paintPixels((0, i), EscSeq.CBLACKBG, "  ")
                 self.canvas.paintPixels((0, i), EscSeq.CWHITEONBLACK, str(i))
         flush()
-        # time.sleep(100)
+        time.sleep(3)
 
         # self.canvas.paintPixels((0, self.height), '[ Bite: ', str(self.bites) + " ]")
         # for bite in self.bites:
@@ -188,7 +170,7 @@ class SnakeThread(threading.Thread):
                 else:
                     del player.current_snake[0]
                     self.canvas.paintPixels(player.current_snake[0], EscSeq.CEND, '  ')
-            elif self.restart: # restart when dead
+            elif self.restart:  # restart when dead
                 for point in player.current_snake:
                     self.canvas.paintPixels(point, EscSeq.CEND, '  ')
                 self.players[player.index] = AutoPlayer(self, player.index)

@@ -74,10 +74,6 @@ class Canvas:
             height = (bottomRight[1] - topLeft[1]) * self._pixelHeight
 
             startPoint = self.getRawPoint(topLeft)
-            if startPoint[0] == 0: # TODO: Move to getRawPoint?
-                startPoint = (startPoint[0] + 1, startPoint[1])
-            if startPoint[1] == 0:
-                startPoint = (startPoint[0], startPoint[1] + 1)
             endPoint = (startPoint[0] + width, startPoint[1] + height)
 
             fillString = (fill * (int(width / len(fill) + 0.5) + 1))[0:width - len(line) + 1] if paintFill else fill
@@ -106,17 +102,7 @@ class Canvas:
                                         line[0:index] +
                                         line[index - 1:index] * ((width + 2) - (index * 2)) +
                                         line[0:index][::-1])
-            # if paintLine:
-            #     for index in range(len(line) + 1):
-            #         terminal.painPixels((startPoint[0], endPoint[1] - index + 1), lineColour,
-            #                             line[index - 1:index] * (width + 2))
-            # if paintLine:
-            #     terminal.painPixels((startPoint[0], endPoint[1]), lineColour, lineString)
 
         def getRawPoint(self, point):
-            rawPoint = [point[0] * self._pixelWidth, point[1] * self._pixelHeight]
-            if point[0] != 0:
-                rawPoint[0] += 1
-            if point[1] != 0:
-                rawPoint[1] += 1
+            rawPoint = [point[0] * self._pixelWidth + 1, point[1] * self._pixelHeight + 1]
             return rawPoint
