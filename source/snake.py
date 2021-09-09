@@ -2,9 +2,9 @@ import select
 import sys
 import time
 
-import snake.terminal as terminal
-from snake.snakeThread import SnakeThread
-from snake.canvas import Canvas
+import source.terminal as terminal
+from source.snakeThread import SnakeThread
+from source.canvas import Canvas
 
 
 def write(x): return terminal.write(x)

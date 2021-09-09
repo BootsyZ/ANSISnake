@@ -1,5 +1,5 @@
 import sys
-from snake.snake import Snake
+from source.snake import Snake
 
 if __name__ == "__main__":
     argv = sys.argv[1:]

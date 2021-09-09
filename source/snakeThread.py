@@ -3,11 +3,11 @@ import threading
 import time
 from enum import Enum, auto
 
-from snake.canvas import Canvas, write, flush
-from snake.escSeq import EscSeq
-from snake.player import Player
-from snake.autoPlayer import AutoPlayer
-from snake.point import getNextPoint
+from source.canvas import Canvas, write, flush
+from source.escSeq import EscSeq
+from source.player import Player
+from source.autoPlayer import AutoPlayer
+from source.point import getNextPoint
 
 
 class SnakeThread(threading.Thread):
@@ -82,17 +82,17 @@ class SnakeThread(threading.Thread):
         self.canvas.paintPixels((self.width, self.height), EscSeq.CBLUEBG, '--')
 
         self.introAnimation()
-        self.canvas.paintRect(topLeft=(self.width - 5, 0), bottomRight=(self.width, 5), line="x", fill="-")
-        self.canvas.paintRect(topLeft=(0, 0), bottomRight=(5, 5), fill="o", line="x")
-        self.canvas.paintRect(topLeft=(8, 1), bottomRight=(16, 6), line="xy", fill="-0")
-        self.canvas.paintRect(topLeft=(20, 4), bottomRight=(30, 12), line="xyz", fill="=")
-        self.canvas.paintRect(topLeft=(38, 4), bottomRight=(48, 12), line="123")
-        self.canvas.paintRect(topLeft=(6, 8), bottomRight=(10, 12), lineColour=EscSeq.CVIOLETBG2,
-                              fillColour=EscSeq.CVIOLETBG)
-        self.canvas.paintRect(topLeft=(15, 15), bottomRight=(25, 25), line="+", fill="-")
-        self.canvas.paintRect(topLeft=(48, 15), bottomRight=(56, 25), line="+", lineColour=EscSeq.CBLUE2, fill="-",
-                              fillColour=EscSeq.CRED)
-        self.canvas.paintRect(topLeft=(32, 15), bottomRight=(44, 25), line="12", fill="-")
+        # self.canvas.paintRect(topLeft=(self.width - 5, 0), bottomRight=(self.width, 5), line="x", fill="-")
+        # self.canvas.paintRect(topLeft=(0, 0), bottomRight=(5, 5), fill="o", line="x")
+        # self.canvas.paintRect(topLeft=(8, 1), bottomRight=(16, 6), line="xy", fill="-0")
+        # self.canvas.paintRect(topLeft=(20, 4), bottomRight=(30, 12), line="xyz", fill="=")
+        # self.canvas.paintRect(topLeft=(38, 4), bottomRight=(48, 12), line="123")
+        # self.canvas.paintRect(topLeft=(6, 8), bottomRight=(10, 12), lineColour=EscSeq.CVIOLETBG2,
+        #                       fillColour=EscSeq.CVIOLETBG)
+        # self.canvas.paintRect(topLeft=(15, 15), bottomRight=(25, 25), line="+", fill="-")
+        # self.canvas.paintRect(topLeft=(48, 15), bottomRight=(56, 25), line="+", lineColour=EscSeq.CBLUE2, fill="-",
+        #                       fillColour=EscSeq.CRED)
+        # self.canvas.paintRect(topLeft=(32, 15), bottomRight=(44, 25), line="12", fill="-")
 
         # if self.parent.debug:
         self.canvas.paintPixels(self.center, EscSeq.CBLUEBG, '--')

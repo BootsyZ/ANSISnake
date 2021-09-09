@@ -1,4 +1,4 @@
-import snake.terminal as terminal
+import source.terminal as terminal
 
 
 def write(x): return terminal.write(x)

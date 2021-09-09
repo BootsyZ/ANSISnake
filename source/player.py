@@ -1,5 +1,5 @@
 import copy
-from snake.escSeq import EscSeq
+from source.escSeq import EscSeq
 
 
 class Player:

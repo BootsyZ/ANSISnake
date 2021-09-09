@@ -1,8 +1,8 @@
-from snake.escSeq import EscSeq
-from snake.player import Player
-from snake.point import getNextPoint, calculateDirection, getManhattenDistance, getSurroundingPoints
+from source.escSeq import EscSeq
+from source.player import Player
+from source.point import getNextPoint, calculateDirection, getManhattenDistance, getSurroundingPoints
 import time
-from snake.canvas import flush
+from source.canvas import flush
 
 
 class AutoPlayer(Player):
