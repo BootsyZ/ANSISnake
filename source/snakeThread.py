@@ -3,7 +3,6 @@ import threading
 import time
 from enum import Enum, auto
 
-from source.canvas import Canvas, write, flush
 from source.escSeq import EscSeq
 from source.player import Player
 from source.autoPlayer import AutoPlayer
@@ -43,7 +42,7 @@ class SnakeThread(threading.Thread):
 
         if selection == Options.START:
             self.game_start()
-            flush()
+            self.canvas.flush()
             self.game_loop()
 
     def introAnimation(self):
@@ -66,7 +65,7 @@ class SnakeThread(threading.Thread):
             self.canvas.paintRect(topLeft=(pointA[0], pointA[1]), bottomRight=(pointB[0], pointB[1]), line="x",
                                   fill=" ")
 
-            flush()
+            self.canvas.flush()
             if pointA == topLeft and pointB == bottomRight:
                 break
             time.sleep(0.01)
@@ -119,7 +118,7 @@ class SnakeThread(threading.Thread):
             else:
                 self.canvas.paintPixels((0, i), EscSeq.CBLACKBG, "  ")
                 self.canvas.paintPixels((0, i), EscSeq.CWHITEONBLACK, str(i))
-        flush()
+        self.canvas.flush()
         time.sleep(3)
 
         # self.canvas.paintPixels((0, self.height), '[ Bite: ', str(self.bites) + " ]")
@@ -147,7 +146,7 @@ class SnakeThread(threading.Thread):
             self.canvas.paintPixels((0, self.height), EscSeq.CBLUEBG, '--')
             self.canvas.paintPixels((self.width, 0), EscSeq.CBLUEBG, '--')
             self.canvas.paintPixels((self.width, self.height), EscSeq.CBLUEBG, '--')
-            flush()
+            self.canvas.flush()
             time.sleep(self.timeSleep)
 
     def move(self):

@@ -2,21 +2,18 @@ import select
 import sys
 import time
 
-import source.terminal as terminal
 from source.snakeThread import SnakeThread
+
+# import source.terminal as terminal
 from source.canvas import Canvas
-
-
-def write(x): return terminal.write(x)
-
-
-def flush(): return terminal.flush()
+from source.pygCanvas import PygCanvas
 
 
 class Snake:
     def __init__(self, *args, **kwargs):
         self.debug = True if "debug" in args else False
-        self.canvas = Canvas(self)
+        self.canvas = PygCanvas(self) if "emulated" in args else Canvas(self)
+        # self.canvas = PygCanvas(self)
         self._snakeThread = SnakeThread(self)
 
     def start(self):

@@ -36,6 +36,10 @@ class Canvas:
             self._terminal = terminal.Terminal(self)
             self._terminal.refresh()
 
+        @staticmethod
+        def flush():
+            return terminal.flush()
+
         def getCenter(self):
             start = [int(self.width / 2), int(self.height / 2 + 0.5)]
             # for i in range(len(start)):

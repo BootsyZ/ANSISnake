@@ -122,12 +122,6 @@ class PygCanvas:
             rawPoint = self.getRawPoint(point)
             return pygame.Rect(rawPoint[0], rawPoint[1], self._charWidth * length, self._charHeight)
 
-        # @staticmethod
-        # def flush():
-        #     PygCanvas.display.fill((0, 0, 0))
-        #     PygCanvas.display.blit(PygCanvas.texture, PygCanvas.texture.GetRect())
-        #     pygame.display.flip()
-
         def flush(self):
             self.display.fill((0, 0, 0))
             self.display.blit(self.texture, self.texture.get_rect())
