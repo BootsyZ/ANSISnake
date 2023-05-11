@@ -62,8 +62,8 @@ class PygCanvas:
             if character != ' ':
                 fgColour = EscSeq.GetColourValueForeground(colour)
                 text_surface, text_rect = self.font.render(character, fgcolor=fgColour)
-                dst_rect = pygame.Rect(rect.centerx - text_rect.width / 2,
-                                       rect.centery - text_rect.height / 2,
+                dst_rect = pygame.Rect(rect.centerx - text_rect.width / 2.2,
+                                       rect.centery - text_rect.height / 2.0,
                                        text_rect.width,
                                        text_rect.height
                                        )
