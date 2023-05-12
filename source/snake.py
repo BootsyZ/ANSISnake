@@ -2,6 +2,7 @@ import select
 import sys
 import time
 
+from source.multiCanvas import MultiCanvas
 from source.snakeThread import SnakeThread
 
 from source.canvas import Canvas
@@ -12,7 +13,8 @@ class Snake:
     def __init__(self, *args, **kwargs):
         self.debug = True if "debug" in args else False
         self.timeSleep = 0.08
-        self.canvas = PygCanvas(self) if "emulated" in args else Canvas(self)
+        self.canvas = MultiCanvas(self) if "multiCanvas" in args else \
+            PygCanvas(self) if "emulated" in args else Canvas(self)
         self._snakeThread = SnakeThread(self)
 
     def start(self):
@@ -23,6 +25,7 @@ class Snake:
         while True:
             t_end = time.time() + self.timeSleep
             self._snakeThread.game_loop()
+            self.canvas.eventLoop()
             while time.time() < t_end:
                 self.input_loop()
 

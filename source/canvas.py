@@ -40,6 +40,9 @@ class Canvas:
         def flush():
             return terminal.flush()
 
+        def eventLoop(self):
+            pass
+
         def getCenter(self):
             start = [int(self.width / 2), int(self.height / 2 + 0.5)]
             # for i in range(len(start)):

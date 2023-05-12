@@ -1,3 +1,5 @@
+import sys
+
 import pygame
 import pygame.freetype
 from source.escSeq import EscSeq
@@ -20,9 +22,10 @@ class PygCanvas:
 
     class __Canvas:
         fontSize = 12
-        width: int = 40
+        width: int = 80
         height: int = 24
-        _rawSize = _rawWidth, _rawHeight = 800, 480
+        _renderSize = _rawWidth, _rawHeight = 800, 480
+        _windowSize = _windowWidth, _windowHeight = _renderSize
         _charWidth: int = _rawWidth / width
         _charHeight: int = _rawHeight / height
         _pixelWidth: int = 2
@@ -32,15 +35,25 @@ class PygCanvas:
             self.parent = parent
             self.debug = parent.debug
             pygame.init()
-            self.display = pygame.display.set_mode(self._rawSize, pygame.HWSURFACE | pygame.DOUBLEBUF)
-            self.texture = pygame.Surface(self._rawSize)
+            self.display = pygame.display.set_mode(self._windowSize,
+                                                   # pygame.SCALED |
+                                                   pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF)
+
+            self.texture = pygame.Surface(self._renderSize)
             self.font = pygame.freetype.SysFont("mono", self.fontSize, bold=True)
             sampleText = "abcdefghijklmnopqrstuvwxyz  ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             text_surface, text_rect = self.font.render(sampleText)
             self._charWidth, self._charHeight = int(text_rect.width / len(sampleText)), int(
                 text_rect.height * 1.4)
-            self.width = int((self._rawWidth / self._charWidth) / self._pixelWidth)-1
-            self.height = int(self._rawHeight / self._charHeight / self._pixelHeight)-1
+            self.width = int((self._rawWidth / self._charWidth) / self._pixelWidth) - 1
+            self.height = int(self._rawHeight / self._charHeight / self._pixelHeight) - 1
+
+        def eventLoop(self):
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit(0)
+                elif event.type == pygame.VIDEORESIZE:
+                    self._windowSize = event.dict['size']
 
         def getCenter(self):
             start = [int(self.width / 2), int(self.height / 2 + 0.5)]
@@ -124,5 +137,7 @@ class PygCanvas:
 
         def flush(self):
             self.display.fill((0, 0, 0))
-            self.display.blit(self.texture, self.texture.get_rect())
+            self.display.blit(pygame.transform.scale(self.texture, self._windowSize), (0, 0))
             pygame.display.flip()
+            # self.display.blit(self.texture, self.texture.get_rect())
+            # pygame.display.flip()
