@@ -1,13 +1,14 @@
 from source.escSeq import EscSeq
 from source.player import Player
-from source.point import getNextPoint, calculateDirection, getManhattenDistance, getSurroundingPoints
+from source.point import GetPointFromDirection, calculateDirection, getManhattenDistance, getSurroundingPoints, \
+    getAllSurroundingPoints, GetDirectionFromPoint
 import time
 from source.canvas import flush
 
 
 class AutoPlayer(Player):
     def __init__(self, parent, index):
-        self.closedList: set = set()
+        self.shortestPath: list = list()
         super().__init__(parent, index)
 
     def getDirection(self):
@@ -29,38 +30,52 @@ class AutoPlayer(Player):
         # elif self.index == 3:
         #     self.parent.debug4(debugstring)
 
+        # if len(self.closedList) > 0:
+        #     if self.parent.isPointValid(self.closedList[0]) and not self.parent.isPointInUse(self.closedList[0]):
+        #         self._pending_direction.append(
+        #             GetDirectionFromPoint(self.current_snake[len(self.current_snake) - 1], self.closedList[0])
+        #         )
+        #         return
+
         if self._direction in new_direction[0]:
             if self.isDirectionValid(self._direction):
-                next_point = getNextPoint(position, self._direction)
+                next_point = GetPointFromDirection(position, self._direction)
                 if self.parent.isPointValid(next_point) and not self.parent.isPointInUse(next_point):
-                    if next_point in self.closedList:
+                    if next_point in self.shortestPath:
                         return
 
         for direction_lists in new_direction:
             for direction_list in direction_lists:
                 for direction in direction_list:
                     if self.isDirectionValid(direction):
-                        next_point = getNextPoint(position, direction)
+                        next_point = GetPointFromDirection(position, direction)
                         if self.parent.isPointValid(next_point) and not self.parent.isPointInUse(next_point):
-                            if next_point in self.closedList:
+                            if next_point in self.shortestPath:
                                 self._pending_direction.append(direction)
                                 return
 
-        # for steps in range(16, 0, -1):
-        #     for direction_lists in new_direction:
-        #         for direction_list in direction_lists:
-        #             for direction in direction_list:
-        #                 if self.isDirectionValid(direction):
-        #                     next_point = getNextPoint(position, direction)
-        #                     if self.parent.isPointValid(next_point) and not self.parent.isPointInUse(next_point):
-        #                         if self.isNotDumb(next_point, direction, steps):
-        #                             self._pending_direction.append(direction)
-        #                             return
-        # self._pending_direction.append(new_direction[0][0])
+        # for point in getSurroundingPoints(self.current_snake[len(self.current_snake) - 1]):
+        #     if self.parent.isPointValid(point) and not self.parent.isPointInUse(point):
+        #         self._pending_direction.append(
+        #             GetDirectionFromPoint(self.current_snake[len(self.current_snake) - 1], point)
+        #         )
+        #         return
+
+    # for steps in range(16, 0, -1):
+    #     for direction_lists in new_direction:
+    #         for direction_list in direction_lists:
+    #             for direction in direction_list:
+    #                 if self.isDirectionValid(direction):
+    #                     next_point = getNextPoint(position, direction)
+    #                     if self.parent.isPointValid(next_point) and not self.parent.isPointInUse(next_point):
+    #                         if self.isNotDumb(next_point, direction, steps):
+    #                             self._pending_direction.append(direction)
+    #                             return
+    # self._pending_direction.append(new_direction[0][0])
 
     def isNotDumb(self, position, direction, run):
         run -= 1
-        next_point = getNextPoint(position, direction)
+        next_point = GetPointFromDirection(position, direction)
         if self.parent.isPointFree(next_point):
             if run > 0 and next_point not in self.parent.bites:
                 return self.isNotDumb(next_point, direction, run)
@@ -80,9 +95,9 @@ class AutoPlayer(Player):
         bitelist.sort(key=lambda x: x[0])
         closest_bite = bitelist[0]
 
-        for pixel in self.closedList:
+        for pixel in self.shortestPath:
             self.parent.canvas.paintPixels(pixel, EscSeq.CEND, '  ')
-        self.closedList = self.getShortestPath(position, closest_bite[1])
+        self.shortestPath = self.getShortestPath(position, closest_bite[1])
         for bite in self.parent.bites:
             self.parent.canvas.paintPixels(bite, EscSeq.CREDBG2, '  ')
         self.parent.canvas.paintPixels(position, self.colourHead, '^^')
@@ -92,53 +107,27 @@ class AutoPlayer(Player):
 
     def getShortestPath(self, start, destination):
         openList = {}
-        closedList: set = set()
-        # openList[start] = [start, getManhattenDistance(start, destination), 0]
-        currentPointObject = [start, getManhattenDistance(start, destination), 0]
+        closedList = {}
+        currentPointObject = [None, getManhattenDistance(start, destination), 0]
         openList[start] = currentPointObject
 
         while len(openList) != 0:
-            # currentPointObject = min(openList.items(), key=lambda x: x[1][1])
+            lowestPointObject = min(openList.items(), key=lambda x: x[1][1])
+            currentPoint = lowestPointObject[0]
+            currentPointObject = lowestPointObject[1]
+            steps = currentPointObject[2] + 1
 
-            lowestPointObject = min(openList.items(), key=lambda x: x[1][1])[1]
-            if currentPointObject and currentPointObject[1] == lowestPointObject[1]:
-                currentPoint = currentPointObject[0]
-                steps = currentPointObject[2] + 1
-            else:
-                currentPoint = lowestPointObject[0]
-                steps = lowestPointObject[2] + 1
-
-            currentPointObject = None
-
-            # self.parent.debug("Obj:", str(currentPoint) + " - " + str(steps))
-            # flush()
-            # time.sleep(100)
-            closedList.add(currentPoint)
+            closedList[currentPoint] = currentPointObject
             openList.pop(currentPoint)
-            # if steps < 100:
-            #     self.parent.canvas.paint_pixel(currentPoint, EscSeq.CGREYBG, str(steps))
-            # distance = getManhattenDistance(currentPoint, destination)
-            # if distance < 100:
-            #     # self.parent.canvas.paint_pixel(currentPoint, EscSeq.CGREYBG, str(int(distance)).format())
-            #     self.parent.canvas.paint_pixel(currentPoint, EscSeq.CGREYBG, f"{distance:}"[0:2])
-            # else:
-            self.parent.canvas.paintPixels(currentPoint, EscSeq.CGREYBG, 'XX')
-
-            if destination in closedList:
-                break
 
             adjacentPoints = []
             for point in getSurroundingPoints(currentPoint):
                 if self.parent.isFuturePointFree(point, steps, self) and point not in closedList:
                     adjacentPoints.append(point)
-                    if self.checkPointSurroundings(point, steps, closedList):
-                        adjacentPoints.append(point)
-                    else:
-                        if not self.checkForClosedloop(point, steps, closedList):
-                            adjacentPoints.append(point)
 
+            # We found a path!
             if destination in adjacentPoints:
-                closedList.add(destination)
+                closedList[destination] = [currentPoint, getManhattenDistance(start, destination), steps]
                 break
 
             for point in adjacentPoints:
@@ -146,29 +135,40 @@ class AutoPlayer(Player):
                     continue
 
                 score = steps + getManhattenDistance(point, destination)
-                if not self.checkPointSurroundings(point, steps, closedList):
-                    score += score + 1  # Check for closed loop instead
+                score += self.checkPointSurroundings(point, steps)
 
-                if not currentPointObject or score < currentPointObject[1]:
-                    currentPointObject = [point, score, steps]
-
-                if point not in openList:
-                    openList[point] = [point, score, steps]
-                else:
+                if point in openList:
                     if score < openList[point][1]:
-                        openList[point] = [point, score, steps]
+                        openList[point] = [currentPoint, score, steps]
+                else:
+                    openList[point] = [currentPoint, score, steps]
 
-        # self.parent.debug("ResultLength: ", len(closedList))
-        return closedList
+        path = []
+        try:
+            current = destination
+            currentObject = closedList[destination]
+            while current is not None:
+                self.parent.canvas.paintPixels(current, EscSeq.CGREYBG, 'XX')
+                path.append(current)
+                current = currentObject[0]
+                if current is not None:
+                    currentObject = closedList[current]
+        except KeyError:
+            # return [start]
+            pass
+        return path[::-1]  # Return reversed path
 
-    def checkPointSurroundings(self, point, steps, closedList):
+    def checkPointSurroundings(self, point, steps):
+        # for futurePoint in getAllSurroundingPoints(point):
+        value = 0
         for futurePoint in getSurroundingPoints(point):
             if futurePoint != self.current_snake[len(self.current_snake) - 1] \
-                    and not self.parent.isFuturePointFree(futurePoint, steps, self):
-                return False
-            elif futurePoint in closedList:
-                return False
-        return True
+                    and not self.parent.isFuturePointFree(futurePoint, steps, self):  # or instead of and?
+                value += 1
+        return value
 
     def checkForClosedloop(self, point, steps, closedList):
+        for x in getSurroundingPoints(point):
+            if x in self.current_snake or x in closedList:
+                return True
         return False

@@ -3,18 +3,26 @@ import random
 
 
 def getSurroundingPoints(point):
-    pointList = [(point[0], point[1] - 1), (point[0] - 1, point[1]), (point[0], point[1] + 1),
+    pointList = [(point[0], point[1] - 1),
+                 (point[0] - 1, point[1]),
+                 (point[0], point[1] + 1),
                  (point[0] + 1, point[1])]
     return pointList
 
 
-# def getSurroundingPoints(point):
-#     pointList = [Point([point[0], point[1] - 1]), Point([point[0] - 1, point[1]]), Point([point[0], point[1] + 1]),
-#                  Point([point[0] + 1, point[1]])]
-#     return pointList
+def getAllSurroundingPoints(point):
+    pointList = [(point[0] - 1, point[1] - 1),
+                 (point[0], point[1] - 1),
+                 (point[0] + 1, point[1] - 1),
+                 (point[0] + 1, point[1]),
+                 (point[0] + 1, point[1] + 1),
+                 (point[0], point[1] + 1),
+                 (point[0] - 1, point[1] + 1),
+                 (point[0] - 1, point[1]), ]
+    return pointList
 
 
-def getNextPoint(position, direction):
+def GetPointFromDirection(position, direction):
     next_point: tuple
     if direction == 'n':
         next_point = (position[0], position[1] - 1)
@@ -27,6 +35,17 @@ def getNextPoint(position, direction):
     else:
         raise ValueError
     return next_point
+
+
+def GetDirectionFromPoint(point_current, point_next):
+    if point_current[0] < point_next[0]:
+        return 'e'
+    elif point_current[0] > point_next[0]:
+        return 'w'
+    elif point_current[1] < point_next[1]:
+        return 'n'
+    else:
+        return 's'
 
 
 # def calculateDistance(start, end):

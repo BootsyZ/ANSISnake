@@ -5,7 +5,7 @@ from enum import Enum, auto
 from source.escSeq import EscSeq
 from source.player import Player
 from source.autoPlayer import AutoPlayer
-from source.point import getNextPoint
+from source.point import GetPointFromDirection
 
 
 class SnakeThread:
@@ -148,7 +148,7 @@ class SnakeThread:
         for player in self.players:
             direction = player.getDirection()
             position = player.current_snake[len(player.current_snake) - 1]
-            next_point = getNextPoint(position, direction)
+            next_point = GetPointFromDirection(position, direction)
 
             # for index in range(1, len(player.current_snake) - 1):
             #     self.canvas.paintPixels(player.current_snake[index], player.colour, '  ')
@@ -165,6 +165,7 @@ class SnakeThread:
                     del player.current_snake[0]
                     self.canvas.paintPixels(player.current_snake[0], EscSeq.CEND, '  ')
             elif self.restart:  # restart when dead
+                time.sleep(3)
                 for point in player.current_snake:
                     self.canvas.paintPixels(point, EscSeq.CEND, '  ')
                 self.players[player.index] = AutoPlayer(self, player.index)

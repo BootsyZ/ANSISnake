@@ -12,7 +12,8 @@ from source.pygCanvas import PygCanvas
 class Snake:
     def __init__(self, *args, **kwargs):
         self.debug = True if "debug" in args else False
-        self.timeSleep = 0.08
+        self.timeSleep = 0.02
+        # self.timeSleep = 0.6
         self.canvas = MultiCanvas(self) if "multiCanvas" in args else \
             PygCanvas(self) if "emulated" in args else Canvas(self)
         self._snakeThread = SnakeThread(self)
